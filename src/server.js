@@ -86,6 +86,8 @@ const typeDefs = `
 
     type Mutation {
       createUser(name:String!,email:String!,age:Int!):User!
+      createPost(title:String!,body:String!,published:Boolean!,author:ID!):Post!
+      createComment(text:String!,author:ID!,post:ID!):Comment!
     }
 
     type User {
@@ -176,6 +178,45 @@ const resolvers = {
       users.push(user);
 
       return user;
+    },
+    createPost(parent, args, ctx, info) {
+      const userExists = users.some((x) => x.id === args.author);
+
+      if (!userExists) {
+        throw new Error("User Not found");
+      }
+
+      const newPost = {
+        id: uuid4(),
+        title: args.id,
+        body: args.body,
+        published: args.published,
+        author: args.author,
+      };
+
+      posts.push(newPost);
+
+      return newPost;
+    },
+    createComment(parent, args, ctx, info) {
+      const validComment =
+        users.some((x) => x.id === args.author) &&
+        posts.some((x) => x.id === args.post && x.published);
+
+      if (!validComment) {
+        throw new Error("Invalid Comment");
+      }
+
+      const newComment = {
+        id: uuid4(),
+        title: args.title,
+        author: args.author,
+        post: args.post,
+      };
+
+      comments.push(newComment);
+
+      return newComment;
     },
   },
   Post: {
