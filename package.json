@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "babel-cli": "6.26.0",
+    "babel-node": "^0.0.1-security",
+    "babel-preset-env": "^1.7.0",
+    "graphql-yoga": "1.14.10",
+    "uuid": "^8.3.2"
+  },
+  "scripts": {
+    "start": "nodemon src/server.js --exec babel-node "
+  }
+}
