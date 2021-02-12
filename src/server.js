@@ -85,9 +85,28 @@ const typeDefs = `
     }
 
     type Mutation {
-      createUser(name:String!,email:String!,age:Int!):User!
-      createPost(title:String!,body:String!,published:Boolean!,author:ID!):Post!
-      createComment(text:String!,author:ID!,post:ID!):Comment!
+      createUser(data: CreateUserInput):User!
+      createPost(data: CreatePostInput):Post!
+      createComment(data: CreateCommentInput):Comment!
+    }
+
+    input CreateUserInput {
+      name:String!
+      email:String!
+      age:Int
+    }
+
+    input CreatePostInput {
+      title:String!
+      body:String!
+      published:Boolean!
+      author:ID!
+    }
+
+    input CreateCommentInput {
+      text:String!
+      author:ID!
+      post:ID!
     }
 
     type User {
@@ -164,23 +183,21 @@ const resolvers = {
   },
   Mutation: {
     createUser(parent, args, ctx, info) {
-      const emailTaken = users.find((x) => x.email === args.email);
+      const emailTaken = users.find((x) => x.email === args.data.email);
       if (emailTaken) {
         throw new Error("Email Already registered");
       }
 
       const user = {
         id: uuid4(),
-        name: args.name,
-        email: args.email,
-        age: args.age,
+        ...args.data,
       };
       users.push(user);
 
       return user;
     },
     createPost(parent, args, ctx, info) {
-      const userExists = users.some((x) => x.id === args.author);
+      const userExists = users.some((x) => x.id === args.data.author);
 
       if (!userExists) {
         throw new Error("User Not found");
@@ -188,10 +205,7 @@ const resolvers = {
 
       const newPost = {
         id: uuid4(),
-        title: args.id,
-        body: args.body,
-        published: args.published,
-        author: args.author,
+        ...args.data,
       };
 
       posts.push(newPost);
@@ -200,8 +214,8 @@ const resolvers = {
     },
     createComment(parent, args, ctx, info) {
       const validComment =
-        users.some((x) => x.id === args.author) &&
-        posts.some((x) => x.id === args.post && x.published);
+        users.some((x) => x.id === args.data.author) &&
+        posts.some((x) => x.id === args.data.post && x.published);
 
       if (!validComment) {
         throw new Error("Invalid Comment");
@@ -209,9 +223,7 @@ const resolvers = {
 
       const newComment = {
         id: uuid4(),
-        title: args.title,
-        author: args.author,
-        post: args.post,
+        ...args.data,
       };
 
       comments.push(newComment);
