@@ -44,16 +44,12 @@ const Mutation = {
       throw new Error("User Not Found");
     }
 
-    if (typeof data.email === "string") {
-      const emailTaken = db.users.some((x) => x.email === data.email);
-      if (emailTaken) {
-        throw new Error("Email Taken");
-      }
-      user.email = data.email;
+    const emailTaken = db.users.some((x) => x.email === data.email);
+    if (emailTaken) {
+      throw new Error("Email Taken");
     }
-    if (typeof data.name === "string") {
-      user.name = data.name;
-    }
+    user.email = data.email;
+    user.name = data.name;
 
     if (typeof data.age !== undefined) {
       user.age = data.age;
@@ -90,6 +86,25 @@ const Mutation = {
 
     return deletedPost[0];
   },
+  updatePost(parent, { id, data }, { db }, info) {
+    const post = db.posts.find((x) => x.id === id);
+
+    if (!post) {
+      throw new Error("Wrong Post Id");
+    }
+
+    if (typeof data.title === "string") {
+      post.title = data.title;
+    }
+    if (typeof data.body === "string") {
+      post.body = data.body;
+    }
+    if (typeof data.published === "boolean") {
+      post.published = data.published;
+    }
+
+    return post;
+  },
   createComment(parent, args, { db }, info) {
     const validComment =
       db.users.some((x) => x.id === args.data.author) &&
@@ -117,6 +132,19 @@ const Mutation = {
     const deletedComment = db.comments.splice(commentIndex, 1);
 
     return deletedComment;
+  },
+  updateComment(parent, { id, data }, { db }, info) {
+    const comment = db.comments.find((x) => x.id === id);
+
+    if (!comment) {
+      throw new Error("Wrong Comment Id");
+    }
+
+    if (typeof data.text === "string") {
+      comment.text = data.text;
+    }
+
+    return comment;
   },
 };
 
