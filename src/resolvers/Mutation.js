@@ -172,17 +172,24 @@ const Mutation = {
 
     return newComment;
   },
-  deleteComment(parent, args, { db }, info) {
-    const commentIndex = db.posts.findIndex((x) => x.id === args.id);
+  deleteComment(parent, args, { db, pubsub }, info) {
+    const commentIndex = db.comments.findIndex((x) => x.id === args.id);
 
     if (commentIndex === -1) {
       throw new Error("Invalid Comment");
     }
-    const deletedComment = db.comments.splice(commentIndex, 1);
+    const [deletedComment] = db.comments.splice(commentIndex, 1);
+
+    pubsub.publish(`comment ${deletedComment.post}`, {
+      comment: {
+        mutation: "DELETED",
+        data: deletedComment,
+      },
+    });
 
     return deletedComment;
   },
-  updateComment(parent, { id, data }, { db }, info) {
+  updateComment(parent, { id, data }, { db, pubsub }, info) {
     const comment = db.comments.find((x) => x.id === id);
 
     if (!comment) {
@@ -192,6 +199,12 @@ const Mutation = {
     if (typeof data.text === "string") {
       comment.text = data.text;
     }
+    pubsub.publish(`comment ${comment.post}`, {
+      comment: {
+        mutation: "UPDATED",
+        data: comment,
+      },
+    });
 
     return comment;
   },
