@@ -1,5 +1,3 @@
-import { PubSub } from "graphql-yoga";
-
 const Subscription = {
   comment: {
     subscribe(parent, { postId }, { db, pubsub }, info) {
