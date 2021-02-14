@@ -80,18 +80,27 @@ const Mutation = {
     }
     return newPost;
   },
-  deletePost(parent, args, { db }, info) {
+  deletePost(parent, args, { db, pubsub }, info) {
     const postIndex = db.posts.findIndex((x) => x.id === args.id);
 
     if (postIndex === -1) {
       throw new Error("Invalid Post");
     }
 
-    const deletedPost = db.posts.splice(postIndex, 1);
+    const [deletedPost] = db.posts.splice(postIndex, 1);
 
     db.comments = db.comments.filter((x) => x.post !== args.id);
 
-    return deletedPost[0];
+    if (deletedPost.published) {
+      pubsub.publish(`post`, {
+        post: {
+          mutation: "DELETED",
+          data: deletedPost,
+        },
+      });
+    }
+
+    return deletedPost;
   },
   updatePost(parent, { id, data }, { db }, info) {
     const post = db.posts.find((x) => x.id === id);
